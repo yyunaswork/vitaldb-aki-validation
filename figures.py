@@ -86,7 +86,8 @@ for i, nm in enumerate(X):
     a.set_xlabel("Predicted probability")
     a.set_ylabel("Observed proportion")
     a.text(0.012, 0.28,
-           f"AUROC {roc_auc_score(y, p):           f"Intercept (CITL) {m0.params[0]:.2f}\n"
+           f"AUROC {roc_auc_score(y, p):.2f}\n"
+           f"Intercept (CITL) {m0.params[0]:.2f}\n"
            f"Slope {m1.params[1]:.2f}",
            va="top", fontsize=8.5)
     a.legend(loc="lower right", fontsize=8)
