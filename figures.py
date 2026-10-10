@@ -86,5 +86,49 @@ for i, nm in enumerate(X):
     a.set_xlabel("Predicted probability")
     a.set_ylabel("Observed proportion")
     a.text(0.012, 0.28,
-           f"AUROC {roc_auc_score(y, p):.2f}\n"
-           f"Intercept (CITL) {m0.params[0]:
+           f"AUROC {roc_auc_score(y, p):           f"Intercept (CITL) {m0.params[0]:.2f}\n"
+           f"Slope {m1.params[1]:.2f}",
+           va="top", fontsize=8.5)
+    a.legend(loc="lower right", fontsize=8)
+plt.tight_layout()
+plt.savefig("Figure2_calibration.png", dpi=300)
+plt.show()
+
+# ---------- Figure 3: decision curves ----------
+pts = np.arange(0.01, 0.2001, 0.005)
+def nb(p):
+    out = []
+    for t in pts:
+        tp = ((p >= t) & (y == 1)).sum()
+        fp = ((p >= t) & (y == 0)).sum()
+        out.append(tp / n - fp / n * t / (1 - t))
+    return np.array(out)
+
+fig, axs = plt.subplots(1, 2, figsize=(11, 4.5), sharey=True)
+for j, rec in enumerate([False, True]):
+    a = axs[j]
+    a.plot(pts, nb(np.ones(n)), color="black", lw=1.2, ls="--",
+           zorder=5, label="Treat all")
+    a.axhline(0, color="black", lw=1, label="Treat none")
+    for nm in X:
+        lp = X[nm].values
+        if rec:
+            m1 = sm.GLM(y, sm.add_constant(lp), family=Bn).fit()
+            p = m1.predict(sm.add_constant(lp))
+        else:
+            p = 1 / (1 + np.exp(-lp))
+        a.plot(pts, nb(p), lw=1.6, color=COL[nm], label=NAME[nm])
+    a.set_ylim(-0.01, 0.035)
+    a.set_xlabel("Threshold probability")
+    a.set_title("A. Original models" if not rec
+                else "B. After recalibration (intercept and slope)",
+                fontsize=10.5)
+    if j == 0:
+        a.set_ylabel("Net benefit")
+    a.legend(fontsize=8)
+plt.tight_layout()
+plt.savefig("Figure3_decision_curves.png", dpi=300)
+plt.show()
+print("Saved: Figure1_flow.png, Figure2_calibration.png,"
+      " Figure3_decision_curves.png")
+
